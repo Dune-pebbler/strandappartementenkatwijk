@@ -1,0 +1,19 @@
+.undefined {
+    &.ui-state-disabled {
+        span {
+            background-color: #ff8585 !important;
+            color: #fff !important;
+        }
+    }
+
+    &:not(.ui-state-disabled) {
+        a {
+            background-color: #94ec94 !important;
+        }
+    }
+}
+
+.flatpickr-disabled {
+    background-color: #ff8585 !important;
+    color: #fff !important;
+}

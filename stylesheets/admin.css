@@ -1,0 +1,19 @@
+.undefined.selected span {
+  background-color: #ff8585 !important;
+  border: #ff8585;
+  color: #fff !important;
+}
+.undefined:not(.selected) a {
+  background-color: #94ec94 !important;
+}
+
+.flatpickr-day.selected {
+  background-color: #ff8585 !important;
+  border: #ff8585 !important;
+  color: #fff !important;
+}
+.flatpickr-day:not(.selected) {
+  background-color: #94ec94 !important;
+  border: #94ec94 !important;
+  color: #fff !important;
+}/*# sourceMappingURL=admin.css.map */

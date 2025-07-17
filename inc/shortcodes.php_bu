@@ -1,0 +1,663 @@
+<?php
+function ap_sc_button($atts, $content = null) {
+	extract(shortcode_atts(array(  
+		'link' => '',
+		'bgcolor' => '',
+		'size' => '',
+		'style' => '',
+		'class' => '',
+		'parameters' => '',
+		'onclick' => ''
+	), $atts));
+	if ( $bgcolor != '' ) {
+		$style = 'style="background-color: ' . $bgcolor . '; border-color: ' . $bgcolor . '; border-bottom-color: rgba(0,0,0,0.2); ' . $style . ';" '; 
+	} else {
+		$style = 'style="border-bottom-color: rgba(0,0,0,0.2); ' . $style . '" ';
+	}	
+	if ( $size == 'big' ) {
+		$class .= ' palace-button-big';
+	}
+	if ( $onclick != '' ) {
+		$parameters .= ' onClick="' . $onclick . '"';
+	}
+	return '<a ' . $parameters . ' class="palace-button ' . $class . '" ' . $style . 'href="' . $link . '">' . $content . '</a>';
+}
+
+function ap_sc_textured_top_area_full_width($atts, $content = null) {
+	return '<div class="textured-area textured-area-top-full-width"><div class="textured-area-content">' . ap_remove_wpautop($content) . '</div></div>';
+}
+
+function ap_sc_textured_middle_area_full_width($atts, $content = null) {
+	return '<div class="textured-area textured-area-middle-full-width"><div class="textured-area-content">' . ap_remove_wpautop($content) . '</div></div>';
+}
+
+function ap_sc_textured_bottom_area_full_width($atts, $content = null) {
+	return '<div class="textured-area textured-area-bottom-full-width"><div class="textured-area-content">' . ap_remove_wpautop($content) . '</div></div>';
+}
+
+function ap_sc_textured_top_left_area($atts, $content = null) {
+	return '<div class="textured-area textured-area-top-left one-third column alpha"><div class="textured-area-content">' . ap_remove_wpautop($content) . '</div></div>';
+}
+
+function ap_sc_textured_top_right_area($atts, $content = null) {
+	return '<div class="textured-area textured-area-top-right one-third column omega"><div class="textured-area-content">' . ap_remove_wpautop($content) . '</div></div><div class="clear"></div>';
+}
+
+function ap_sc_gallery($atts) {
+	extract(shortcode_atts(array(  
+		'images_from_media_library' => '',
+		'ids' => '',
+		'link' => 'file',
+		'columns' => 3,
+		'orderby' => '',
+		'margin_width' => 1
+    ), $atts));
+	
+	if ( !function_exists( 'get_caption' ) ) {
+		function get_caption($id) {
+			$int_id = (int)$id;
+			$post = get_post($int_id);
+			return $post->post_excerpt;
+		}
+	}
+	
+	$gal_num = rand();
+	$col_width = (100 - $margin_width * ( $columns - 1)) / $columns;
+	$img_num_in_col = 1;
+	$return_string = '<div class="gallery-wp">';
+	if ( $images_from_media_library != '' ) {
+		$image_names = explode(',', $images_from_media_library);
+		$attachments_id = array();
+		global $wpdb;
+		foreach ( $image_names as $image_name ) {
+			$attachments_id[] = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE post_title = '" . trim($image_name) . "'" );
+		}
+	} else {
+		$attachments_id = explode(',', $ids);
+	}
+	if ( $orderby == 'rand' ) {
+		shuffle($attachments_id);
+	}
+	foreach ($attachments_id as $attachment_id) {
+		$return_string .= '<div class="gallery-item" style="width: ' . $col_width . '%">';
+		if ( $link == 'post' ) {
+			$return_string .= wp_get_attachment_link($attachment_id, 'image-1000x562-r169', true, false);
+		} else {
+			$image_1000_562_src = aq_resize( wp_get_attachment_url($attachment_id), 1000, 562, true );
+			$return_string .= '<a data-rel-ap-light-box="ap-light-box[wp-gallery-' . $gal_num . ']" href="' . wp_get_attachment_url($attachment_id) .'"><img src="' . $image_1000_562_src . '" alt="" /></a>';
+		}
+		$return_string .= '<p class="gallery-caption">' . get_caption($attachment_id) . '</p>';
+		$return_string .= '</div>';
+		if ( $img_num_in_col == $columns ) {
+			$return_string .= '<div class="clear"></div>';
+			$img_num_in_col = 1;
+		} else {
+			$return_string .= '<div class="gallery-margin" style="width: ' . $margin_width . '%"></div>';
+			$img_num_in_col++;
+		}
+	}
+	$return_string .= '<p class="clear"></p>';
+	$return_string .= '</div>';
+	return $return_string;
+}
+
+function ap_sc_thumbnails_gallery($atts) {
+	extract(shortcode_atts(array(  
+		'images_from_media_library' => '',
+		'link_to_full_size' => 'no' //no, current, all
+    ), $atts));
+	$return_string = '<div class="gallery-ap">';
+	global $wpdb;
+	$attachements = explode(',',$images_from_media_library);
+	$attachement_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE post_title = '" . trim($attachements[0]) . "'" );
+	$image_src = wp_get_attachment_image_src($attachement_id, 'image-width-930');
+	if ( $link_to_full_size != 'no' ) {
+		$link_begin = '<a href="' . wp_get_attachment_url($attachement_id) . '" class="gallery-ap-light-box" data-light-box-all="';
+		if ( $link_to_full_size == 'all' ) {
+			$link_begin .= 'yes';
+		} else {
+			$link_begin .= 'no';
+		}
+		$link_begin .= '">';
+		$link_end = '</a>';
+	} else {
+		$link_begin = '';
+		$link_end = '';
+	}
+	$return_string .= '<div class="gallery-big-image">' . $link_begin . '<img src="' . $image_src[0] . '" class="img-gallery-ap-full-size" alt="" />' . $link_end . '</div>';
+	$return_string .= '<div class="gallery-slider" data-processing="no">';
+	$return_string .= '<div class="gallery-slide">';
+	foreach ($attachements as $attachement) {
+		$attachement_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE post_title = '" . trim($attachement) . "'" );
+		$image_width_930_src = wp_get_attachment_image_src($attachement_id, 'image-width-930');
+		if ( $link_to_full_size != 'no' ) {
+			$image_full_size_src = wp_get_attachment_url($attachement_id);
+		} else {
+			$image_full_size_src = '';
+		}
+		$return_string .= '<a href="' . $image_width_930_src[0] .'" data-full-size-src="' . $image_full_size_src . '">' . wp_get_attachment_image($attachement_id , 'image-90x90') . '</a>';
+	}
+	$return_string .= '</div></div>';
+	$return_string .= '<div class="gallery-controls"><a href="#" class="slider-content-button-left"></a><a href="#" class="slider-content-button-right"></a>';
+	$return_string .= '<div class="slider-content-button-left-disabled"></div><div class="slider-content-button-right-disabled"></div></div>';
+	$return_string .= '</div>';
+	return $return_string;
+}
+
+function do_slider_content($atts, $type) {
+	extract(shortcode_atts(array(  
+        'width' => '',
+		'category' => '',
+		'images' => '',
+		'images_from_media_library' => '',
+		'image' => 'big', //none, big, small
+		'image_link' => 'post', // none, post, full-size
+		'title' => 'link', // none, link, raw
+		'content' => 'content', // none, excerpt, content
+		'link' => 'button', // none, link, button
+		'max' => '999',
+		'autoplay' => 'no' // no or value in ms
+    ), $atts));
+	$wrap_code_begin = '<div class="slider-' . $type . ' slider-content-first-container" data-autoplay="' . $autoplay . '"><a class="slider-content-button-left" href="#"></a><a class="slider-content-button-right" href="#"></a><div class="slider-content-button-left-disabled"></div><div class="slider-content-button-right-disabled"></div><div class="slider-content-second-container"><div class="slider-content-third-container">';
+	$wrap_code_end = '</div></div></div>';
+	$return_string = '';
+	$slides = '';
+	if ( $type == 'type-a' ) {
+		$slide_width = ' ' . sc_width_to_class($width);
+		if ( ($width == 'one-third') || ($width == 'one-fourth') ) {
+			$image_size = 'image-420x180';
+		} elseif ( $width == 'post-with-sidebar' ) {
+			$image_size = 'image-630x210';
+		} else {
+			$image_size = 'image-930x310';
+		}
+	} else {
+		$slide_width = '';
+		$image_size = 'image-420x180';
+	}
+	if ( ($category == 'slider_images') || ($category == 'media-library') || ($images_from_media_library != '') || ($images != '') ) {
+		if ( $images != '' ) {
+			$attachements = explode(',',$images);
+		} else {
+			$attachements = explode(',',$images_from_media_library);
+		}
+		global $wpdb;
+		$gal_num = rand();
+		foreach ($attachements as $attachement) {
+			$slides .= '<div class="slider-content-slide' . $slide_width . '">';
+			$attachement_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE post_title = '" . trim($attachement) . "' AND post_type = 'attachment'" );
+			if ( $image_link == 'full-size' ) {
+				$link_begin = '<a href="' . wp_get_attachment_url( $attachement_id , 'full') . '" data-rel-ap-light-box="ap-light-box[' . $gal_num . ']">';
+				$link_end = '</a>';
+			} else {
+				$link_begin = '';
+				$link_end = '';
+			}
+			$slides .= '<p class="scale-with-grid">' . $link_begin . wp_get_attachment_image( $attachement_id , $image_size) . $link_end . '</p>';
+			$att = get_page($attachement_id);
+			$slides .= '<p>' . $att->post_excerpt . '</p>';
+			$slides .= '</div>';
+		}
+	} else {
+		query_posts(array('category_name' => $category, 'posts_per_page' => $max));
+		global $wp_query;
+		$stickies = array();
+		foreach ( $wp_query->posts as $i => $post ) {
+			if ( is_sticky( $post->ID ) ) {
+				$stickies[] = $post;
+				unset( $wp_query->posts[$i] );
+			}
+		}
+		$wp_query->posts = array_merge( $stickies, $wp_query->posts );
+		if (have_posts()) :
+			while (have_posts()) : the_post();
+				$slides .= '<div class="slider-content-slide' . $slide_width . '">';
+				if ( $image_link  == 'post' ) {
+					$link_begin = '<a href="' . get_permalink() . '">';
+					$link_end = '</a>';
+				} elseif ( $image_link == 'full-size' ) {
+					$full_image_url = wp_get_attachment_image_src( get_post_thumbnail_id(), 'full');
+					$link_begin = '<a href="' . $full_image_url[0] . '" data-rel-ap-light-box="ap-light-box">';
+					$link_end = '</a>';
+				} else {
+					$link_begin = '';
+					$link_end = '';
+				}
+				if ( get_the_post_thumbnail( get_the_ID(), 'image-420x180' ) != '' ) {
+					if ( $image == 'big' ) {
+						$slides .= '<p class="scale-with-grid">' . $link_begin . get_the_post_thumbnail( get_the_ID(), $image_size ) . $link_end . '</p>';
+					} elseif ( $image == 'small' ) {
+						$slides .= '<p class="alignleft">' . $link_begin . get_the_post_thumbnail( get_the_ID(), 'image-90x90' ) . $link_end . '</p>';
+					}
+				}
+				if ( $title == 'link' ) {
+					$slides .= '<h3><a href="' . get_permalink() . '">' . get_the_title() . '</a></h3>';
+				} elseif ( $title == 'raw' ) {
+					$slides .= '<h3>' . get_the_title() . '</h3>';
+				}
+				if ( $content == 'excerpt' ) {
+					$slides .= '<p>' . do_shortcode(get_the_excerpt()) . '</p>';
+				} elseif ( $content == 'content' ) {
+					global $more;
+					$old_more = $more;
+					$more = 0; 
+					$slides .= '<p>' . do_shortcode(get_the_content('')) . '</p>';
+					$more = $old_more;
+				}
+				if ( $link == 'link' ) {
+					$slides .= '<p><a href="' . get_permalink() . '" rel="bookmark">' . __('Learn more &raquo;', 'thepalace') . '</a></p>';
+				} elseif ( $link == 'button' ) {
+					$slides .= '<p class="slider-content-slide-button"><a href="' . get_permalink() . '" class="palace-button" rel="bookmark">' . __('Learn more &raquo;', 'thepalace') . '</a></p>';
+				}
+				$slides .= '</div>';
+			endwhile;
+		endif;
+		wp_reset_query();
+	}
+	return $wrap_code_begin . $slides . $wrap_code_end;
+}
+
+function ap_sc_slider_type_a($atts) {
+	return do_slider_content($atts, 'type-a');
+}
+
+function ap_sc_slider_type_b($atts) {
+	return do_slider_content($atts, 'type-b');
+}
+
+function ap_sc_slider_type_c($atts) {
+	extract(shortcode_atts(array( 
+		'name' => '',
+		'position' => '', // set to top to display on top without padding
+		'width' => '' // set to full to display a full width slider without margin
+    ), $atts));
+	$return_string = '';
+	global $ap_options;
+	$slider_data = array();
+	foreach ( $ap_options['ap_global_slider_manager']['val'] as $slider ) {
+		if ( $slider['name'] == $name ) {
+			$slider_data = $slider;
+			break;
+		}
+	}
+	if ( sizeof($slider_data) == 0 ) {
+		$return_string = 'The slider <b>' . $name . '</b> does not exist.';
+	} else {
+		$class = 'sc-fws-container';
+		if ( $position == 'top' ) {
+			$class .= ' position-top';
+		} 
+		if ( $width == 'full' ) {
+			$class .= ' full-width';
+		}
+		$return_string .= '<div class="' . $class . '" data-animation-speed="' . $slider_data['options'][0] . '" data-pause-time="' . $slider_data['options'][1] . '" data-autoplay="' . $slider_data['options'][2] . '">';
+		$p = 'style="position: relative; display: block; opacity: 0"';
+		foreach( $slider_data['slides'] as $slide ) {
+			$return_string .= '<img ' . $p . ' src="' . aq_resize( $slide['image_url'], 1000, (int)$slider_data['options'][3], true ) . '" data-caption="' . __( $slide['caption'] ) . '" alt="" />';
+			$p = '';
+		}
+		$return_string .= '<div class="sc-fws-borders"></div>';
+		$return_string .= '<a href="#" class="sc-fws-button-left slider-button-left-' . $ap_options['ap_slider_controls_color']['val'] . '"></a>';
+		$return_string .= '<a href="#" class="sc-fws-button-right slider-button-right-' . $ap_options['ap_slider_controls_color']['val'] . '"></a>';
+		$return_string .= '<div class="sc-fws-caption"></div>';
+		$return_string .= '</div>'; 
+	}
+	return $return_string;
+}
+
+function sc_add_clear_to_columns($width) {
+	if ( substr($width, -5) == '-last' ) {
+		return '<div class="clear"></div>';
+	} else {
+		return '';
+	}
+}
+
+function sc_width_to_class($width) {
+	$margin = '';
+	if ( substr($width, -6) == '-first' ) {
+		$margin = 'alpha';
+		$width = str_replace('-first', '', $width);
+	} elseif ( substr($width, -5) == '-last' ) {
+		$margin = 'omega';
+		$width = str_replace('-last', '', $width);
+	}
+	switch ($width) {
+		case 'one-half': return 'eight columns ' . $margin; break;
+		case 'one-third': return 'one-third column ' . $margin; break;
+		case 'two-thirds': return 'two-thirds column ' . $margin; break;
+		case 'one-fourth': return 'four columns ' . $margin; break;
+		case 'one-sixth': return 'one-sixth column ' . $margin; break;
+		case 'one-eighth': return 'two columns ' . $margin; break;
+		case 'three-fourth': return 'twelve columns ' . $margin; break;
+		case 'three-fourths': return 'twelve columns ' . $margin; break;
+		case 'post-with-sidebar': return 'eleven columns ' . $margin; break;
+		case 'full': return 'sixteen columns alpha omega'; break;
+	}
+}
+	
+function ap_sc_column($atts, $content = null) {
+	extract(shortcode_atts(array(  
+        'width' => ''  
+    ), $atts));
+	return '<div class="' . sc_width_to_class($width) . '">' . ap_remove_wpautop($content) . '</div>' . sc_add_clear_to_columns($width);
+}
+
+function ap_sc_room_features($atts) {
+	extract(shortcode_atts(array(
+		'cols' => '1',
+		'icons' => '',
+		'labels' => ''
+	), $atts));
+	$cols = intval($cols);
+	if ( ($cols < 1) || ($cols > 10) ) {
+		return '<p>The number of columns in not correct (must be between 1 and 10).</p>';
+	}
+	$icons = explode(',', $icons);
+	$labels = explode(',', $labels);
+	if ( count($icons) != count($labels) ) {
+		return '<p>Not the same number of icons and labels.</p>';
+	}
+	$col_width = intval(100 / $cols);
+	$i = 0;
+	$j = 0;
+	$odd_or_even = 'odd';
+	$content_table = '';
+	foreach ( $icons as $icon ) {
+		if ( $i == 0 ) {
+			$content_table .= '<tr>';
+		}
+		$content_table .= '<td class="' . $odd_or_even . '" width="' . $col_width . '%"><span style="background-image:url(' . get_template_directory_uri(). '/img/feature-icons/' . $icon . ');">' . $labels[$j] . '</span></td>';
+		$i++;
+		$j++;
+		if ( $odd_or_even == 'odd' ) {
+			$odd_or_even = 'even';
+		} else {
+			$odd_or_even = 'odd';
+		}
+		if ( $i == $cols ) {
+			$i = 0;
+			$content_table .= '</tr>';
+		}
+	}
+	return '<table class="table-room-features">' . $content_table . '</table>';
+}
+
+function ap_sc_google_map($atts) {
+	extract(shortcode_atts(array(
+		'width' => '100%',
+		'height' => '350',
+		'src' => ''
+	), $atts));
+	return '<iframe width="'.$width.'" height="'.$height.'" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="'.$src.'&amp;output=embed"></iframe>';
+}
+
+function ap_sc_dropcap($atts) {
+	extract(shortcode_atts(array(  
+        'letter' => ''  
+    ), $atts));
+	if (strlen($letter) != 1) {
+		return '';
+	} else {
+		return '<span class="dropcap">' . $letter . '</span>';
+	}
+}
+
+function ap_sc_list($atts, $content = null) {
+	extract(shortcode_atts(array(  
+        'style' => ''  
+    ), $atts));
+	return '<div class="list-' . $style . '">' . $content . '</div>';
+}
+
+function ap_sc_hr() {
+	return '<hr/>';
+}
+
+function ap_sc_br() {
+	return '<br/>';
+}
+
+function ap_sc_font($atts, $content = null) {
+	extract(shortcode_atts(array(  
+        'size' => ''  
+    ), $atts));
+	return '<span style="line-height: 2; font-size:' . $size . '">' . ap_remove_wpautop($content) . '</span>';
+}
+
+function ap_sc_room_type_data() { //before 1.3 now integrated with the [calendar] shortcode
+	/*$return_string = '<input type="hidden" id="ah-room-type-slugs-data" value="' . get_option('ah_room_type_slugs') .'" />';
+	$return_string .= '<input type="hidden" id="ah-room-type-names-data" value="' . get_option('ah_room_type_names') .'" />';
+	return $return_string;*/
+	return '';
+}
+
+function calendar_options_string_to_array($s) {
+	if ( trim($s) == '' ) {
+		return array();
+	}
+	$return_array = array();
+	$rules = explode(',', $s);
+	foreach ( $rules as $rule ) {
+		$key = trim(substr($rule, 0, strpos($rule, ':')));
+		$value = trim(substr($rule, strpos($rule, ':') + 1));
+		if ( ($value{0} == "'") || ($value{0} == '"') ) {
+			$value = substr($value, 1, strlen($value) - 2);
+		} elseif ( $value == 'true' ) {
+			$value = true;
+		} elseif ( $value == 'false' ) {
+			$value = false;
+		} else {
+			$value = intval($value);
+		}
+		$return_array[$key] = $value;
+	}
+	return $return_array;
+}
+
+function ap_sc_control_availability() {
+	require_once( get_template_directory() . '/aurel-hotel/aurel-hotel-functions.php' );
+	$calendars_data = get_ah_calendars_data();
+	return '<input class="ah-control-avai-calendars-data" type="hidden" value="' . htmlspecialchars($calendars_data) . '" />';
+}
+
+function ap_sc_room_selected($atts) {
+	extract(shortcode_atts(array(  
+		'room_type' => ''
+	), $atts));
+	return '<input type="hidden" name="room" value="' . $room_type . '" />';
+}
+
+function ap_sc_calendar($atts) {
+	extract(shortcode_atts(array(  
+		'name' => '',
+		'room_type' => '',
+		'options' => '',
+		'type' => 'inline', //inline, inline-no-input, pop-up
+		'show_availability' => 'yes',
+		'days_selectable' => 'yes',
+		'lang' => '',
+    ), $atts));
+
+	$return_string = '';
+	
+	require_once( get_template_directory() . '/aurel-hotel/aurel-hotel-functions.php' );
+	$return_string .= '<input type="hidden" class="ah-room-types-data" value=\'' . esc_attr( json_encode( get_ah_room_types() ) ) . '\' />';
+	
+	if ( $type == 'pop-up' ) {
+		$return_string .= '<div class="ap-calendars-wrapper-for-pop-up">';
+	}
+	
+	$calendar_options = array();
+	$calendar_options['prevText'] = '&#9668;';
+	$calendar_options['nextText'] = '&#9658;';
+	$calendar_options['changeMonth'] = false;
+	$calendar_options['firstDay'] = 1;
+	$calendar_options['monthsToShow'] = 1;
+	$calendar_options['minDate'] = 0;
+	$calendar_options['maxDate'] = 365;
+	$calendar_options['multiSelect'] = 0;
+	$calendar_options['dateFormat'] = get_option('ah_date_format');
+	if ( $calendar_options['dateFormat'] == '' ) {
+		$calendar_options['dateFormat'] = 'dd-mm-yyyy';
+	}
+	$calendar_options['onSelect'] = 'update_input_date';
+
+	$calendar_advanced_options = calendar_options_string_to_array(get_option('ah_date_picker_options'));
+	$calendar_options = array_merge($calendar_options, $calendar_advanced_options);
+	
+	$options = calendar_options_string_to_array($options);
+	$calendar_options = array_merge($calendar_options, $options);
+	
+	$return_string .= '<div class="ap-calendars-wrapper calendar-' . $type . ' calendar-' . $calendar_options['monthsToShow'] . '-columns" id="calendar-' . $name . '">';
+	
+	if ( $days_selectable == 'no' ) {
+		$calendar_options['multiSelect'] = -1;
+	}
+	$return_string .= '<input type="hidden" class="ah-calendar-options" value="' . htmlspecialchars(json_encode($calendar_options)) .'" />';
+	
+	if ( $name == 'check-in' ) {
+		require_once( get_template_directory() . '/aurel-hotel/aurel-hotel-functions.php' );
+		$room_types = get_ah_room_types();
+		$minimal_stay = array();
+		$check_in_day = array();
+		$check_out_day = array();
+		foreach( $room_types as $rt ) {
+			if ( isset( $rt['minimal-stay'] ) && ( $rt['minimal-stay'] != 'none' ) ) {
+				$minimal_stay[] = array (
+					'room-id' => $rt['id'],
+					'nights' => $rt['minimal-stay']
+				);
+			}
+			if ( isset( $rt['check-in-day'] ) && ( $rt['check-in-day'] != 'none' ) ) {
+				$check_in_day[] = array (
+					'room-id' => $rt['id'],
+					'check-in-day' => $rt['check-in-day']
+				);
+			}
+			if ( isset( $rt['check-out-day'] ) && ( $rt['check-out-day'] != 'none' ) ) {
+				$check_out_day[] = array (
+					'room-id' => $rt['id'],
+					'check-out-day' => $rt['check-out-day']
+				);
+			}
+		}
+		$return_string .= '<input type="hidden" id="check-in-formatted" name="check-in-formatted" />';
+		$return_string .= '<input type="hidden" id="minimal-stay" value="' . htmlspecialchars(json_encode($minimal_stay)) . '" />';
+		$return_string .= '<input type="hidden" id="check-in-day-compulsory" value="' . htmlspecialchars(json_encode($check_in_day)) . '" />';
+		$return_string .= '<input type="hidden" id="check-out-day-compulsory" value="' . htmlspecialchars(json_encode($check_out_day)) . '" />';
+	}	
+	if ( $name == 'check-out' ) {
+		$return_string .= '<input type="hidden" id="check-out-formatted" name="check-out-formatted" />';
+	}
+	
+	if ( $type == 'pop-up' ) {
+		$button_ok = '<a class="palace-button calendar-button-ok" href="#">OK</a>';
+	} else {
+		$button_ok = '';
+	}
+	
+	if ( $lang != '' ) {
+		 //$return_string .= '<input type="hidden" class="ah-calendar-lang" value="' . $lang . '" />';
+		 wp_enqueue_script( 'palace_calendar_lang_' . $lang, get_template_directory_uri() . '/js/datepicklang/jquery.datepick-' . $lang . '.js', array('palace_calendar'), '1.0', true );
+	}
+	
+	if ( $room_type != '' ) {
+		 $return_string .= '<input type="hidden" class="ah-calendar-type-to-show" value="' . $room_type . '" />';
+	}
+
+	if ( $show_availability == 'yes' ) {
+		require_once( get_template_directory() . '/aurel-hotel/aurel-hotel-functions.php' );
+		$calendars_data = get_ah_calendars_data();
+		$return_string .= '<input class="ah-calendars-data" type="hidden" value="' . esc_attr($calendars_data) . '" />';
+		
+		$room_types = get_ah_room_types();
+		foreach ( $room_types as $rt ) {
+			$return_string .= '<div id="calendar-' . $rt['id'] . '-name-' . $name . '" class="ap-calendar calendar-for-' . $rt['id'] . '"></div>';
+		}
+		$return_string .= 	'<p class="calendar-key">';
+		if ( $days_selectable == 'yes' ) {
+			$return_string .='<span class="calendar-key-selected-days">&#9604;</span>&nbsp;&nbsp;' .
+							__('your selection', 'thepalace') . 
+							'&nbsp;&nbsp;&nbsp;<span class="calendar-key-unavailable">&#9604;</span>&nbsp;&nbsp;' .
+							__('unavailable', 'thepalace');
+		} else {
+			$return_string .='<span class="calendar-key-available">&#9604;</span>&nbsp;&nbsp;' .
+							__('available', 'thepalace') . 
+							'&nbsp;&nbsp;&nbsp;<span class="calendar-key-unavailable">&#9604;</span>&nbsp;&nbsp;' .
+							__('unavailable', 'thepalace');		
+		}
+		$return_string .= $button_ok . '</p>';
+	} else {
+		$return_string .= '<div class="ap-calendar"></div>';
+		$return_string .= 	'<p class="calendar-key">' .
+							'<span class="calendar-key-selected-days">&#9604;</span>&nbsp;&nbsp;' . 
+							__('your selection', 'thepalace') . 
+							$button_ok .
+							'</p>';
+	}
+
+	if ( $type == 'pop-up' ) {
+		$return_string .= '</div>';
+	}
+
+	$return_string .= '</div>';	
+
+	return $return_string;
+}
+
+function ap_register_shortcodes() {
+	add_shortcode('button', 'ap_sc_button');
+	add_shortcode('textured_top_area_full_width', 'ap_sc_textured_top_area_full_width');
+	add_shortcode('textured_middle_area_full_width', 'ap_sc_textured_middle_area_full_width');
+	add_shortcode('textured_bottom_area_full_width', 'ap_sc_textured_bottom_area_full_width');
+	add_shortcode('textured_top_left_area', 'ap_sc_textured_top_left_area');
+	add_shortcode('textured_top_right_area', 'ap_sc_textured_top_right_area');
+	add_shortcode('slider_type_a', 'ap_sc_slider_type_a');
+	add_shortcode('slider_type_b', 'ap_sc_slider_type_b');
+	add_shortcode('full_width_slider', 'ap_sc_slider_type_c');
+	add_shortcode('slider_type_c', 'ap_sc_slider_type_c');
+	add_shortcode('theme_gallery', 'ap_sc_thumbnails_gallery');
+	add_shortcode('thumbnails_gallery', 'ap_sc_thumbnails_gallery');
+	add_shortcode('column', 'ap_sc_column');
+	add_shortcode('sub_column', 'ap_sc_column');
+	add_shortcode('room_features', 'ap_sc_room_features');
+	add_shortcode('google_map', 'ap_sc_google_map');
+	add_shortcode('dropcap', 'ap_sc_dropcap');
+	add_shortcode('u_list', 'ap_sc_list');
+	add_shortcode('hr', 'ap_sc_hr');
+	add_shortcode('br', 'ap_sc_br');
+	add_shortcode('font', 'ap_sc_font');
+	add_shortcode('room_type_data', 'ap_sc_room_type_data');
+	add_shortcode('room_selected', 'ap_sc_room_selected');
+	add_shortcode('control_availability', 'ap_sc_control_availability');
+	add_shortcode('calendar', 'ap_sc_calendar');
+	
+	global $ap_options;
+	if ( $ap_options['ap_disable_wp_gallery']['val'] == 'yes' ) {
+		remove_shortcode('gallery', 'gallery_shortcode');
+		add_shortcode('gallery', 'ap_sc_gallery');
+	}
+	
+}
+
+add_action('init', 'ap_register_shortcodes');
+
+function ap_remove_wpautop( $content ) {
+    $content = do_shortcode( shortcode_unautop( $content ) );
+    $content = preg_replace( '#^<\/p>|^<br \/>|<p>$#', '', $content );
+    return $content;
+}
+
+add_filter('widget_text', 'do_shortcode');
+add_filter('the_excerpt', 'do_shortcode');
+add_filter('get_the_excerpt', 'do_shortcode');
+
+function aurel_hotel_wpcf7_form_elements( $form ) {
+	$form = do_shortcode( shortcode_unautop( $form ));
+	$form = preg_replace( '#^<\/p>|^<br \/>|<p>$#', '', $form );
+	return $form;
+}
+
+add_filter( 'wpcf7_form_elements', 'aurel_hotel_wpcf7_form_elements' );
+?>

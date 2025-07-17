@@ -1,0 +1,19 @@
+h3 {
+	margin: 30px 0 10px;
+}
+
+#ah-main-settings-form p {
+	margin: 0 0 5px;
+}
+
+#ah-main-settings-form div {
+	margin-bottom: 10px;
+}
+
+#ah-template-message-textareas textarea {
+	line-height: 17px;
+}
+
+#ah-add-template-message-options {
+	display: none;
+}

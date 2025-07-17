@@ -1,0 +1,46 @@
+hr { 
+	border: solid #dfdfdf; 
+	border-width: 1px 0 0; 
+	height: 0; 
+	margin: 10px 0 19px; 
+}
+
+.ah-updated, .ah-ajax-updated {
+	background: #ffffe0;
+	border: 1px solid #e6db55;
+	border-radius: 3px;
+}
+
+.ah-ajax-updated {
+	display: none;
+	padding: 10px;
+}
+
+#ah-message {
+	padding: 0 10px;
+}
+
+#ah-message-top {
+	float: left;
+	margin-top: 15px;
+	padding: 0 10px;
+}
+
+/*#ah-page-title {
+	background: #fcfcfc;
+	border-bottom: 1px solid #fff;
+	box-shadow: 0px 1px 1px 0px #CCC;
+}*/
+
+#ah-page-title h2 {
+	float: left;
+	font-size: 24px;
+	font-weight: normal;
+	margin-top: 15px;
+}
+
+#ah-save-changes {
+	float: left;
+	margin-right: 25px;
+	margin-top: 25px;
+}

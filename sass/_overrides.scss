@@ -1,0 +1,80 @@
+.page-template-page-appartement{
+    #gform_wrapper_1 {
+        padding: 25px;
+        background-color: #b29e84;
+        border-radius: 5px;
+
+        h2 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 30px;
+        }
+
+        .gform_body {
+            .gfield {
+                label {
+                    color: $white;
+                }
+
+                .ginput_container {
+                    input:not([type=checkbox], [type=radio]) {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+
+        .gform_footer {
+            input {
+                background-color: $white;
+                color: #b29e84;
+            }
+        }
+    }
+}
+
+.undefined {
+    &.ui-state-disabled {
+        span {
+            background-color: #ff8585 !important;
+            color: #fff !important;
+        }
+    }
+
+    &:not(.ui-state-disabled) {
+        a {
+            background-color: #94ec94 !important;
+        }
+    }
+}
+
+.flatpickr-disabled {
+    background-color: #ff8585 !important;
+    color: #fff !important;
+}
+
+#input_1_6+.flatpickr-calendar {
+    .flatpickr-days {
+        position: relative;
+
+        &:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+    }
+}
+
+.flatpickr-calendar.inline {
+    .flatpickr-month {
+        height: 55px;
+
+        .numInput {
+            padding: 10px !important;
+        }
+    }
+}
